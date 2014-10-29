@@ -1,19 +1,22 @@
 package com.iwaki.web.controller;
 
 import java.io.UnsupportedEncodingException;
+
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 
+import com.iwaki.web.model.Award;
 import com.iwaki.web.model.ScoreRank;
+import com.iwaki.web.resp.AwardResp;
 import com.iwaki.web.resp.ScoreResp;
 import com.iwaki.web.service.GameService;
 import com.iwaki.web.util.Util;
@@ -27,8 +30,11 @@ public class GameController {
 	@Autowired
 	private GameService gameService;
 	
-	//@Value("${game.url}")
+	@Value("${game.url}")
 	private String gameURL;
+	
+	@Value("${web.url}")
+	private String serverURL;
 	
 	@Value("${app.magic.key}")
 	private String magicKey;
@@ -39,7 +45,7 @@ public class GameController {
 	 * @param openid 分享者openid
 	 * @return
 	 */
-	@RequestMapping(value = "/share/{openid}", method = RequestMethod.GET)
+/*	@RequestMapping(value = "/share/{openid}", method = RequestMethod.GET)
 	public String share(HttpServletRequest request, @PathVariable("openid") String openid) {
 		if (openid != null && openid.length() > 0) {
 			String ip = request.getLocalAddr();
@@ -50,7 +56,7 @@ public class GameController {
 		}
 		return "redirect:" + gameURL;
 	}
-	
+	*/
 	
 	@RequestMapping(value = "/score", method = RequestMethod.POST)
 	@ResponseBody
@@ -108,7 +114,33 @@ public class GameController {
 		gameService.acceptArticle(openid);
 		return true;
 	} 
+	
+	@RequestMapping(value = "/award", method = RequestMethod.POST)
+	@ResponseBody
+	public AwardResp award(HttpServletRequest request,HttpServletResponse resp, String openid) {
+		resp.setHeader("Access-Control-Allow-Origin", "*");
+		AwardResp awardResp = new AwardResp();
+		awardResp.setResult(true);
+		awardResp.setDesc("");
+		Award a;
+		if (openid != null && openid.length() > 0) {
+			a = gameService.getFansAward(openid);
+			String url = serverURL + "game/help?help=" + openid;
+			awardResp.setHelpUrl(url);
+		} else {
+			a = gameService.getGuestAward(request.getRemoteAddr());
+		}
+		awardResp.setAward(a);
+		return awardResp;
+	} 
 
+	@RequestMapping(value = "/help", method = RequestMethod.GET)
+	public String help(HttpServletRequest request,HttpServletResponse resp, String help) {
+		resp.setHeader("Access-Control-Allow-Origin", "*");
+		gameService.helpAward(request.getRemoteAddr(), help);
+		return "redirect:" + gameURL;
+		
+	} 
 }
 
 

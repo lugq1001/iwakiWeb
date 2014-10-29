@@ -25,10 +25,7 @@ public class RedisManager {
 		if (pool == null) {
 			JedisPoolConfig config = new JedisPoolConfig();
 			config.setTestOnBorrow(true);
-			if (password == null || password.length() == 0)
-				pool = new JedisPool(config, host, port);
-			else 
-				pool = new JedisPool(config, host, port, 30000, password);
+			pool = new JedisPool(config, host, port, 30000, password);
 		}
 		return pool;
 	}
