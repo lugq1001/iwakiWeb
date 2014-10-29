@@ -8,6 +8,8 @@ public class ScoreResp extends Resp {
 
 	private long myRank;
 	
+	private boolean atl = false;
+	
 	private ArrayList<ScoreRank> ranks;
 
 	public long getMyRank() {
@@ -25,4 +27,14 @@ public class ScoreResp extends Resp {
 	public void setRanks(ArrayList<ScoreRank> ranks) {
 		this.ranks = ranks;
 	}
+
+	public boolean isAtl() {
+		return atl;
+	}
+
+	public void setAtl(boolean atl) {
+		this.atl = atl;
+	}
+
+	
 }

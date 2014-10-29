@@ -11,4 +11,8 @@ public interface GameService {
 	public long incrRank(ScoreRank scoreRank);
 	
 	public ArrayList<ScoreRank> topRanks();
+	
+	public void acceptArticle(String openid);
+	
+	public boolean hasAcceptArticle(String openid);
 }

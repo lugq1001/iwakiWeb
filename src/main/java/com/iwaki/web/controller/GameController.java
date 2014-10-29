@@ -1,11 +1,8 @@
 package com.iwaki.web.controller;
 
 import java.io.UnsupportedEncodingException;
-import java.util.UUID;
-
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,7 +27,7 @@ public class GameController {
 	@Autowired
 	private GameService gameService;
 	
-	@Value("${game.url}")
+	//@Value("${game.url}")
 	private String gameURL;
 	
 	@Value("${app.magic.key}")
@@ -78,10 +75,10 @@ public class GameController {
 			score = 0L;
 		}
 		if (openid == null || openid.length() == 0) {
-			//String ip = request.getRemoteAddr();
-			//openid = ip;
-			UUID uuid= UUID.randomUUID();
-			openid = uuid.toString();
+			String ip = request.getRemoteAddr();
+			openid = ip;
+			//UUID uuid= UUID.randomUUID();
+			//openid = uuid.toString();
 			nickname = "游客";
 			avatar = "";
 		}
@@ -96,9 +93,21 @@ public class GameController {
 		scoreResp.setDesc("");
 		scoreResp.setMyRank(rank);
 		scoreResp.setRanks(gameService.topRanks());
+		boolean hasAcceptArticle = gameService.hasAcceptArticle(openid);
+		scoreResp.setAtl(hasAcceptArticle);
 		return scoreResp;
 	}
 	
+	@RequestMapping(value = "/accept", method = RequestMethod.POST)
+	@ResponseBody
+	public boolean accept(HttpServletRequest request,HttpServletResponse resp, String openid) {
+		resp.setHeader("Access-Control-Allow-Origin", "*");
+		if (openid == null || openid.length() == 0) {
+			return false;
+		}
+		gameService.acceptArticle(openid);
+		return true;
+	} 
 
 }
 

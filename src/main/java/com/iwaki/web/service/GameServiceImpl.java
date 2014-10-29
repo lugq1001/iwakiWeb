@@ -1,9 +1,6 @@
 package com.iwaki.web.service;
 
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
 import java.util.Set;
 
 import org.slf4j.Logger;
@@ -89,19 +86,52 @@ public class GameServiceImpl implements GameService {
 		}
 		return ranks;
 	}
-	
+
+	@Override
+	public void acceptArticle(String openid) {
+		Jedis jedis = null;
+		try { 
+			jedis = redisManager.getRedisInstance();
+			String key = articleKey();
+			jedis.sadd(key, openid);
+		} catch(Exception e) {
+			logger.error(e.getMessage());
+		} finally {
+			redisManager.returnResource(jedis);
+		}		
+	}
+
+	@Override
+	public boolean hasAcceptArticle(String openid) {
+		Jedis jedis = null;
+		boolean has = false;
+		try { 
+			jedis = redisManager.getRedisInstance();
+			String key = articleKey();
+			has = jedis.sismember(key, openid);
+		} catch(Exception e) {
+			logger.error(e.getMessage());
+		} finally {
+			redisManager.returnResource(jedis);
+		}
+		return has;
+	}
 	
 	//============================================
 	private String sharedKey(String openid) {
 		return "shared:" + openid;
 	}
-	
+		
 	private String rankKey() {
 		return "rank:";
 	}
-	
+		
 	private String playerKey(String openid) {
 		return "player:" + openid;
+	}
+	
+	private String articleKey() {
+		return "article:";
 	}
 
 }
