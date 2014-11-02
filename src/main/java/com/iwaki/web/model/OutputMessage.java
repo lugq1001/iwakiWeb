@@ -26,6 +26,44 @@ public class OutputMessage {
 		return replyInfo.toString();
 	}
 	
+	public static String createImgResp(String toUser, String fromUser,
+			String title,String desc,String img,String url) {
+		StringBuffer replyInfo = new StringBuffer();
+		long CreateTime = System.currentTimeMillis() / 1000;
+		replyInfo.append("<xml>");
+		replyInfo.append("<ToUserName>");
+		replyInfo.append("<![CDATA[").append(toUser).append("]]>");
+		replyInfo.append("</ToUserName>");
+		replyInfo.append("<FromUserName>");
+		replyInfo.append("<![CDATA[").append(fromUser).append("]]>");
+		replyInfo.append("</FromUserName>");
+		replyInfo.append("<CreateTime>");
+		replyInfo.append(CreateTime);
+		replyInfo.append("</CreateTime>");
+		replyInfo.append("<MsgType>");
+		replyInfo.append("<![CDATA[news]]>");
+		replyInfo.append("</MsgType>");
+		replyInfo.append("<ArticleCount>1</ArticleCount>");
+		replyInfo.append("<Articles>");
+		replyInfo.append("<item>");
+		replyInfo.append("<Title>");
+		replyInfo.append("<![CDATA[").append(title).append("]]>");
+		replyInfo.append("</Title>");
+		replyInfo.append("<Description>");
+		replyInfo.append("<![CDATA[").append(desc).append("]]>");
+		replyInfo.append("</Description>");
+		replyInfo.append("<PicUrl>");
+		replyInfo.append("<![CDATA[").append(img).append("]]>");
+		replyInfo.append("</PicUrl>");
+		replyInfo.append("<Url>");
+		replyInfo.append("<![CDATA[").append(url).append("]]>");
+		replyInfo.append("</Url>");
+		replyInfo.append("</item>");
+		replyInfo.append("</Articles>");
+		replyInfo.append("</xml>");
+		return replyInfo.toString();
+	}
+	
 	public static String createAwardContent() {
 		return "1.请点击【我要领奖】。\n"
 				+ "2.出现兑奖界面后，请根据提示准确输入您的【兑奖码】。\n"

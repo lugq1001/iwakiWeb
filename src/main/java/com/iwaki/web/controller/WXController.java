@@ -81,7 +81,9 @@ public class WXController {
 			
 			String eventKey = inputMsg.getEventKey();
 			if (eventKey.equals("game")) {// 游戏响应
-				String xml = OutputMessage.createGameResp(inputMsg.getFromUserName(), inputMsg.getToUserName(),
+				String xml = OutputMessage.createImgResp(inputMsg.getFromUserName(), inputMsg.getToUserName(), 
+						"iwaki国王的宝藏", "点击开始游戏", 
+						"http://112.65.246.168:81/images/wx_game.jpg", 
 						gameURL + "?openid=" + inputMsg.getFromUserName() + "&nickname=粉丝&");
 				logger.info("响应：" + xml);
 				ps.write(xml.getBytes("UTF-8"));  
@@ -96,7 +98,9 @@ public class WXController {
 				logger.info("响应：" + xml);
 				ps.write(xml.getBytes("UTF-8"));  
 			} else if (eventKey.equals("award")) {// 我要领奖
-				String xml = OutputMessage.createGameResp(inputMsg.getFromUserName(), inputMsg.getToUserName(),
+				String xml = OutputMessage.createImgResp(inputMsg.getFromUserName(), inputMsg.getToUserName(), 
+						"领奖页面", "点击填写领奖信息", 
+						"http://112.65.246.168:81/images/wx_award.jpg", 
 						"http://112.65.246.168:81/game/connect.html");
 				logger.info("响应：" + xml);
 				ps.write(xml.getBytes("UTF-8"));  
