@@ -1,6 +1,7 @@
 package com.iwaki.web.controller;
 
 import java.io.UnsupportedEncodingException;
+import java.util.Random;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -17,6 +18,8 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import com.iwaki.web.model.Award;
 import com.iwaki.web.model.ScoreRank;
 import com.iwaki.web.resp.AwardResp;
+import com.iwaki.web.resp.GetAwardResp;
+import com.iwaki.web.resp.Resp;
 import com.iwaki.web.resp.ScoreResp;
 import com.iwaki.web.service.GameService;
 import com.iwaki.web.util.Util;
@@ -139,8 +142,43 @@ public class GameController {
 		resp.setHeader("Access-Control-Allow-Origin", "*");
 		gameService.helpAward(request.getRemoteAddr(), help);
 		return "redirect:" + gameURL;
-		
 	} 
+	
+	/**
+	 * 兑换奖品
+	 * @param request
+	 * @param resp
+	 * @param openid
+	 * @param code 兑奖码
+	 * @return
+	 */
+	@RequestMapping(value = "/getAward", method = RequestMethod.POST)
+	@ResponseBody
+	public GetAwardResp getAward(HttpServletRequest request,HttpServletResponse resp,String openid,String code) {
+		resp.setHeader("Access-Control-Allow-Origin", "*");
+		GetAwardResp getAwardResp = new GetAwardResp();
+		int i = new Random().nextInt(2);
+		System.out.print(i);
+		getAwardResp.setResult(i==0);
+		getAwardResp.setDesc("数据错误");
+		getAwardResp.setAward_name("国王台历");
+		getAwardResp.setCode("21331231231");
+		getAwardResp.setPrice("50");
+		getAwardResp.setTips("*此奖品为原装进口，预计在2014年11月20日左右为你寄出，故请耐心等待它漂洋过海来到你身边。谢谢理解。");
+		int j = new Random().nextInt(2);
+		getAwardResp.setType(j + "");
+		return getAwardResp;
+	}
+	
+	@RequestMapping(value = "/contact", method = RequestMethod.POST)
+	@ResponseBody
+	public Resp contact(HttpServletRequest request,HttpServletResponse resp,String name,String cellphone, String addr) {
+		resp.setHeader("Access-Control-Allow-Origin", "*");
+		Resp r = new Resp();
+		r.setResult(System.currentTimeMillis() % 2 == 0);
+		r.setDesc("输入信息不完整，请重新输入");
+		return r;
+	}
 }
 
 

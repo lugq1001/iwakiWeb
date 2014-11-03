@@ -2,11 +2,9 @@ package com.iwaki.web.controller;
 
 import java.io.IOException;
 import java.io.OutputStream;
-
 import javax.servlet.ServletInputStream;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -14,7 +12,6 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
-
 import com.iwaki.web.model.InputMessage;
 import com.iwaki.web.model.MessageType;
 import com.iwaki.web.model.OutputMessage;
@@ -99,12 +96,12 @@ public class WXController {
 				ps.write(xml.getBytes("UTF-8"));  
 			} else if (eventKey.equals("award")) {// 我要领奖
 				String xml = OutputMessage.createImgResp(inputMsg.getFromUserName(), inputMsg.getToUserName(), 
-						"领奖页面", "点击填写领奖信息", 
+						"我要领奖", "点击进入领奖", 
 						"http://112.65.246.168:81/images/wx_award.jpg", 
-						"http://112.65.246.168:81/game/connect.html");
+						"http://112.65.246.168:81/game/contact.html?openid=" + inputMsg.getFromUserName() + "&");
 				logger.info("响应：" + xml);
 				ps.write(xml.getBytes("UTF-8"));  
-			} 
+			}
 		}
 		ps.write("".getBytes("UTF-8"));  
 	}
