@@ -81,7 +81,7 @@ public class WXController {
 				String xml = OutputMessage.createImgResp(inputMsg.getFromUserName(), inputMsg.getToUserName(), 
 						"iwaki国王的宝藏", "点击开始游戏", 
 						"http://112.65.246.168:81/images/wx_game.jpg", 
-						gameURL + "?openid=" + inputMsg.getFromUserName() + "&nickname=粉丝&");
+						gameURL + "?openid=" + inputMsg.getFromUserName() + "&");
 				logger.info("响应：" + xml);
 				ps.write(xml.getBytes("UTF-8"));  
 			} else if (eventKey.equals("sub_1")) {// 领奖方式
