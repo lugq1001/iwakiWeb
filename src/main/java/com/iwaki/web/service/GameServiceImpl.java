@@ -141,7 +141,7 @@ public class GameServiceImpl implements GameService {
 		Award a = new Award();
 		Random r = new Random();
 		a.setLevel(5 + "");
-		a.setDesc("游客您好！恭喜您获得5等奖哦！");
+		a.setDesc("游客您好！恭喜您获得6等奖哦！");
 		a.setCode(1000000 + r.nextInt(9000000) + "");
 		return a;
 	}
