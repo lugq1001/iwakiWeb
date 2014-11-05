@@ -97,7 +97,7 @@ public class WXController {
 			} else if (eventKey.equals("award")) {// 我要领奖
 				String xml = OutputMessage.createImgResp(inputMsg.getFromUserName(), inputMsg.getToUserName(), 
 						"我要领奖", "点击进入领奖", 
-						"http://112.65.246.168:81/images/wx_award.jpg", 
+						"http://112.65.246.168:81/images/wx_award_img.jpg", 
 						"http://112.65.246.168:81/game/contact.html?openid=" + inputMsg.getFromUserName() + "&");
 				logger.info("响应：" + xml);
 				ps.write(xml.getBytes("UTF-8"));  
