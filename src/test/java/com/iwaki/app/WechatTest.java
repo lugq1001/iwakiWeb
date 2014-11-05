@@ -24,7 +24,7 @@ public class WechatTest {
 	}
 	
 	public static void createButton() {
-		String token = "ZoKyhV4B9LoAbGGSXi2SORy3nfIFEAkF-cAt08qonrmLBY6feAvvvRd2Qm_3pM3XC7xF3ibkyb4j-RnDc9RS5FqdMjezEmU_VATpL1LCxYs";
+		String token = "G9AKSs8RvsdC9ylNdMbM9uHa8FGrIQR9VGr-DrajFOJcsVE-UQr7Fd89dAoHyxaOVrsBeQiPSQ0nxYv_HLA6U23GhSRw4LAi3ecg5kyXOEY";
 		String url = "https://api.weixin.qq.com/cgi-bin/menu/create?access_token=" + token;
 		PrintWriter out = null;
 		String result = "";
@@ -113,13 +113,13 @@ public class WechatTest {
 
 		ArrayList<Button> subs = new ArrayList<Button>();
 		Button sub1 = new Button();
-		sub1.setType("click");
+		sub1.setType("view");
 		sub1.setName("领奖方式");
-		sub1.setKey("sub_1");
+		sub1.setUrl("http://112.65.246.168:81/game/award_way.html");
 		Button sub2 = new Button();
-		sub2.setType("click");
+		sub2.setType("view");
 		sub2.setName("中奖贴士");
-		sub2.setKey("sub_2");
+		sub2.setUrl("http://112.65.246.168:81/game/award_tips.html");
 		Button sub3 = new Button();
 		sub3.setType("view");
 		sub3.setName("奖品一览");
