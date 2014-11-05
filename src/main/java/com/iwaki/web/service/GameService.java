@@ -4,6 +4,7 @@ import java.util.ArrayList;
 
 import com.iwaki.web.model.Award;
 import com.iwaki.web.model.ScoreRank;
+import com.iwaki.web.model.prize.Prize;
 
 public interface GameService {
 
@@ -25,11 +26,14 @@ public interface GameService {
 	public boolean helpAward(String ip,String openid);
 	
 	// 游客抽奖
-	public Award getGuestAward(String ip);
+	public Award getGuestAward(String ip) throws Exception;
 	
 	// 玩家抽奖
-	public Award getFansAward(String openid);
+	public Award getFansAward(String openid) throws Exception;
 	
+	
+	// 领奖
+	public Prize recvAward(String openid, String code) throws Exception;
 }
 
 

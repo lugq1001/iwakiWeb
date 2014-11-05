@@ -1,6 +1,8 @@
 package com.iwaki.web.service;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.Random;
 import java.util.Set;
 
@@ -17,6 +19,8 @@ import com.iwaki.web.cache.RedisManager;
 import com.iwaki.web.model.Award;
 import com.iwaki.web.model.AwardPrice;
 import com.iwaki.web.model.ScoreRank;
+import com.iwaki.web.model.prize.Prize;
+import com.iwaki.web.model.prize.PrizeType;
 
 @Service
 public class GameServiceImpl implements GameService {
@@ -55,10 +59,12 @@ public class GameServiceImpl implements GameService {
 			if (oldScore == null || scoreRank.getScore() > oldScore) {
 				jedis.zadd(rankKey, scoreRank.getScore(), openid);
 				rank = jedis.zrevrank(rankKey, openid);
+				jedis.set(prizeConditionKey(openid), true + "");
 			} else { // 临时排名
 				jedis.zadd(rankKey, scoreRank.getScore(), "temp");
 				rank = jedis.zrevrank(rankKey, "temp");
 				jedis.zrem(rankKey, "temp");
+				jedis.set(prizeConditionKey(openid), false + "");
 			}
 			jedis.set(playerKey(openid), json);
 		} catch(Exception e) {
@@ -136,25 +142,197 @@ public class GameServiceImpl implements GameService {
 		return true;
 	}
 
+	// 领取兑奖码
 	@Override
-	public Award getGuestAward(String ip) {
-		Award a = new Award();
+	public Award getGuestAward(String ip) throws Exception {
+		Jedis jedis = null;
+		Award a = null;
+		jedis = redisManager.getRedisInstance();
 		Random r = new Random();
-		a.setLevel(6 + "");
-		a.setDesc("游客您好！恭喜您获得6等奖哦！");
-		a.setCode(1000000 + r.nextInt(9000000) + "");
+		String code = "";
+		Prize p;
+		while (true) {
+			code = 10000000 + r.nextInt(90000000) + "";
+			String key = prizeGuestKey(code);
+			String val = jedis.get(key);
+			if (val == null || val.length() == 0) {
+				String realCodeKey = couponskey(PrizeType.LEVEL_6.getPrice());// 10元优惠券
+				String realCode = jedis.lpop(realCodeKey);
+				if (realCode == null || realCode.length() == 0) {
+					redisManager.returnResource(jedis);
+					throw new Exception("亲爱的对不起，奖品已发放完毕。");
+				}
+				p = Prize.makeLevel6Prize(code,realCode);
+				ObjectMapper mapper = new ObjectMapper();
+				String json = mapper.writeValueAsString(p);
+				jedis.set(key, json);
+				break;
+			}
+		}
+		a = new Award();
+		int level = p.getPrizeType().getLevel();
+		a.setLevel(level + "");
+		a.setDesc("游客您好！恭喜您获得" + level + "等奖哦！");
+		a.setCode(code); 
+		redisManager.returnResource(jedis);
 		return a;
 	}
 
 	@Override
-	public Award getFansAward(String openid) {
-		Award a = new Award();
+	public Award getFansAward(String openid) throws Exception {
+		Jedis jedis = null;
+		Award a = null;
+		jedis = redisManager.getRedisInstance();
 		Random r = new Random();
-		int level = r.nextInt(5) + 1;
+		String code = "";
+		Prize p;
+		while (true) {
+			code = 10000000 + r.nextInt(90000000) + "";
+			String key = prizeFansKey(code);
+			String val = jedis.get(key);
+			if (val == null || val.length() == 0) {
+				PrizeType type = lotty(openid);
+				String realCode = "";
+				if (type == PrizeType.LEVEL_4) {
+					String realCodeKey = couponskey(PrizeType.LEVEL_4.getPrice());// 50元优惠券
+					realCode = jedis.lpop(realCodeKey);
+					if (realCode == null || realCode.length() == 0) {
+						redisManager.returnResource(jedis);
+						throw new Exception("亲爱的对不起，奖品已发放完毕。");
+					}
+				}
+				if (type == PrizeType.LEVEL_5) {
+					String realCodeKey = couponskey(PrizeType.LEVEL_5.getPrice());// 20元优惠券
+					realCode = jedis.lpop(realCodeKey);
+					if (realCode == null || realCode.length() == 0) {
+						redisManager.returnResource(jedis);
+						throw new Exception("亲爱的对不起，奖品已发放完毕。");
+					}
+				}
+				p = new Prize();
+				p.setExchange(false);
+				p.setPrizeType(type);
+				p.setRealCode(realCode);
+				p.setExchangeCode(code);
+				ObjectMapper mapper = new ObjectMapper();
+				String json = mapper.writeValueAsString(p);
+				jedis.set(key, json);
+				break;
+			}
+		}
+		a = new Award();
+		int level = p.getPrizeType().getLevel();
 		a.setLevel(level + "");
-		a.setDesc("亲爱的粉丝您好！恭喜您获得" + a.getLevel() + "等奖(" + "价值" + AwardPrice.values()[level - 1].getPrice() + "元)");
-		a.setCode(1000000 + r.nextInt(9000000) + "");
+		a.setDesc("亲爱的粉丝您好！恭喜您获得" + level + "等奖," + p.getPrizeType().getPrizeName());
+		a.setCode(code); 
+		redisManager.returnResource(jedis);
 		return a;
+	}
+	
+	@Override
+	public Prize recvAward(String openid, String code) throws Exception {
+		Jedis jedis = redisManager.getRedisInstance();
+		String key;
+		if(openid == null || openid.length() == 0)
+			key = prizeGuestKey(code);
+		else 
+			key = prizeFansKey(code);
+		String val = jedis.get(key);
+		if(val == null || val.length() == 0) {
+			redisManager.returnResource(jedis);
+			throw new Exception("获奖码无效");
+		}
+		ObjectMapper mapper = new ObjectMapper();
+		Prize prize = mapper.readValue(val, Prize.class);
+		if (prize.isExchange()) {
+			redisManager.returnResource(jedis);
+			throw new Exception("获奖码已领取");
+		}
+		prize.setExchange(true);
+		jedis.set(key, mapper.writeValueAsString(prize));
+		redisManager.returnResource(jedis);
+		return prize;
+	}
+	
+	private PrizeType lotty(String openid) {
+		Jedis jedis = null;
+		try {
+			jedis = redisManager.getRedisInstance();;
+			int r = new Random().nextInt(100);
+			if (r >= 99) {// 1等奖
+				String countKey = dailyPrizeCountKey(PrizeType.LEVEL_1);
+				int count = Integer.parseInt(jedis.get(countKey));
+				if (count > 0) { // 每天抽取一名
+					return PrizeType.LEVEL_5;
+				}
+				if(hasPrize123(openid, jedis)) {// 1、2、3奖项每个用户只能中一次
+					return PrizeType.LEVEL_5;
+				}
+				jedis.sadd(fansPrizeRecordKey(openid), PrizeType.LEVEL_1.toString());// 记录用户中奖
+				jedis.set(countKey, 0 + "");
+				return PrizeType.LEVEL_1;
+			} else if (r >= 94) {// 2等奖
+				String countKey = dailyPrizeCountKey(PrizeType.LEVEL_2);
+				int count = Integer.parseInt(jedis.get(countKey));
+				if (count > 2) { // 每天抽取2名
+					return PrizeType.LEVEL_5;
+				}
+				if(hasPrize123(openid, jedis)) {// 1、2、3奖项每个用户只能中一次
+					return PrizeType.LEVEL_5;
+				}
+				jedis.sadd(fansPrizeRecordKey(openid), PrizeType.LEVEL_2.toString());// 记录用户中奖
+				jedis.set(countKey, count + 1 + "");
+				return PrizeType.LEVEL_2;
+			} else if (r >= 89) {// 3等奖
+				String countKey = dailyPrizeCountKey(PrizeType.LEVEL_3);
+				int count = Integer.parseInt(jedis.get(countKey));
+				if (count > 30) { // 每天抽取30名
+					return PrizeType.LEVEL_5;
+				}
+				if(hasPrize123(openid, jedis)) {// 1、2、3奖项每个用户只能中一次
+					return PrizeType.LEVEL_5;
+				}
+				jedis.sadd(fansPrizeRecordKey(openid), PrizeType.LEVEL_3.toString());// 记录用户中奖
+				jedis.set(countKey, count + 1 + "");
+				return PrizeType.LEVEL_3;
+			} else if (r >= 70) {// 4等奖
+				if(hasPrize1234(openid, jedis)) {//1、2、3奖项每个用户只能中一次，即只要中过，1~4等奖不能再得  拿过一次4等奖，还能拿1~3等奖但不能再拿4等奖
+					return PrizeType.LEVEL_5;
+				}
+				jedis.sadd(fansPrizeRecordKey(openid), PrizeType.LEVEL_4.toString());// 记录用户中奖
+				return PrizeType.LEVEL_4;
+			} 
+			
+		} catch (Exception e) {
+			return PrizeType.LEVEL_5;
+		} finally {
+			redisManager.returnResource(jedis);
+		}
+		return PrizeType.LEVEL_5;
+	}
+	
+	private boolean hasPrize123(String openid, Jedis jedis) {
+		Set<String> record = jedis.smembers(fansPrizeRecordKey(openid));
+		if (record.contains(PrizeType.LEVEL_1.toString()))
+			return true;
+		if (record.contains(PrizeType.LEVEL_2.toString()))
+			return true;
+		if (record.contains(PrizeType.LEVEL_3.toString()))
+			return true;
+		return false;
+	}
+	
+	private boolean hasPrize1234(String openid, Jedis jedis) {
+		Set<String> record = jedis.smembers(fansPrizeRecordKey(openid));
+		if (record.contains(PrizeType.LEVEL_1.toString()))
+			return true;
+		if (record.contains(PrizeType.LEVEL_2.toString()))
+			return true;
+		if (record.contains(PrizeType.LEVEL_3.toString()))
+			return true;
+		if (record.contains(PrizeType.LEVEL_4.toString()))
+			return true;
+		return false;
 	}
 	
 	//============================================
@@ -178,6 +356,37 @@ public class GameServiceImpl implements GameService {
 		return "award_help:" + openid + ":";
 	}
 
+	// 抽奖
+	private String prizeGuestKey(String code) {
+		return "prize_guest:" + code;
+	}
 	
+	// 抽奖
+	private String prizeFansKey(String code) {
+		SimpleDateFormat f = new SimpleDateFormat("yyyy-MM-dd");
+		String date = f.format(new Date());
+		return "prize_fans:" + date + ":" + code;
+	}
 
+	// 奖券key
+	private String couponskey(int price) {
+		return "coupons:" + price + ":";
+	}
+
+	// 粉丝抽奖资格
+	private String prizeConditionKey(String openid) {
+		return "prize_condition:" + openid;
+	}
+	
+	// 每日抽奖数量
+	private String dailyPrizeCountKey(PrizeType type) {
+		SimpleDateFormat f = new SimpleDateFormat("yyyy-MM-dd");
+		String date = f.format(new Date()); 
+		return "prize_daily_count:" + date + ":" + type.toString() + "";
+	}
+	
+	// 粉丝获奖记录
+	private String fansPrizeRecordKey(String openid) {
+		return "prize_record:" + openid + ":";
+	}
 }

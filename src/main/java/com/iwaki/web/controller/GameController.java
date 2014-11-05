@@ -17,6 +17,8 @@ import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.iwaki.web.model.Award;
 import com.iwaki.web.model.ScoreRank;
+import com.iwaki.web.model.prize.Prize;
+import com.iwaki.web.model.prize.PrizeType;
 import com.iwaki.web.resp.AwardResp;
 import com.iwaki.web.resp.GetAwardResp;
 import com.iwaki.web.resp.Resp;
@@ -125,13 +127,21 @@ public class GameController {
 		AwardResp awardResp = new AwardResp();
 		awardResp.setResult(true);
 		awardResp.setDesc("");
-		Award a;
-		if (openid != null && openid.length() > 0) {
-			a = gameService.getFansAward(openid);
-			String url = serverURL + "game/help?help=" + openid;
-			awardResp.setHelpUrl(url);
-		} else {
-			a = gameService.getGuestAward(request.getRemoteAddr());
+		Award a = null;
+		try {
+			if (openid != null && openid.length() > 0) {
+				a = gameService.getFansAward(openid);
+				String url = serverURL + "game/help?help=" + openid;
+				awardResp.setHelpUrl(url);
+			} else {
+				a = gameService.getGuestAward(request.getRemoteAddr());
+			}
+		} catch (Exception e) {
+			awardResp.setResult(false);
+			awardResp.setDesc(e.getMessage());
+			logger.error(e.getMessage());
+			//e.printStackTrace();
+			return awardResp;
 		}
 		awardResp.setAward(a);
 		return awardResp;
@@ -157,16 +167,24 @@ public class GameController {
 	public GetAwardResp getAward(HttpServletRequest request,HttpServletResponse resp,String openid,String code) {
 		resp.setHeader("Access-Control-Allow-Origin", "*");
 		GetAwardResp getAwardResp = new GetAwardResp();
-		int i = new Random().nextInt(2);
-		System.out.print(i);
-		getAwardResp.setResult(i==0);
-		getAwardResp.setDesc("数据错误");
-		getAwardResp.setAward_name("国王台历");
-		getAwardResp.setCode("21331231231");
-		getAwardResp.setPrice("50");
-		getAwardResp.setTips("*此奖品为原装进口，预计在2014年11月20日左右为你寄出，故请耐心等待它漂洋过海来到你身边。谢谢理解。");
-		int j = new Random().nextInt(2);
-		getAwardResp.setType(j + "");
+		try {
+			Prize p = gameService.recvAward(openid, code);
+			getAwardResp.setResult(true);
+			getAwardResp.setDesc("");
+			getAwardResp.setAward_name(p.getPrizeType().getPrizeName());
+			getAwardResp.setCode(p.getRealCode());
+			getAwardResp.setPrice(p.getPrizeType().getPrice() + "");
+			if(p.getPrizeType() == PrizeType.LEVEL_1)
+				getAwardResp.setTips("*此奖品为原装进口，预计在2014年11月20日左右为你寄出，故请耐心等待它漂洋过海来到你身边。谢谢理解。");
+			else
+				getAwardResp.setTips("");
+			getAwardResp.setType(p.getPrizeType().getType() + "");
+		} catch (Exception e) {
+			getAwardResp.setResult(false);
+			getAwardResp.setDesc(e.getMessage());
+			logger.error(e.getMessage());
+			//e.printStackTrace();
+		}
 		return getAwardResp;
 	}
 	
