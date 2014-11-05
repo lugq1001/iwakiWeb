@@ -17,7 +17,7 @@ import redis.clients.jedis.Jedis;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.iwaki.web.cache.RedisManager;
 import com.iwaki.web.model.Award;
-import com.iwaki.web.model.AwardPrice;
+import com.iwaki.web.model.Contact;
 import com.iwaki.web.model.ScoreRank;
 import com.iwaki.web.model.prize.Prize;
 import com.iwaki.web.model.prize.PrizeType;
@@ -59,12 +59,14 @@ public class GameServiceImpl implements GameService {
 			if (oldScore == null || scoreRank.getScore() > oldScore) {
 				jedis.zadd(rankKey, scoreRank.getScore(), openid);
 				rank = jedis.zrevrank(rankKey, openid);
-				jedis.set(prizeConditionKey(openid), true + "");
+				if (openid != null && openid.length() > 0)
+					jedis.set(prizeConditionKey(openid), true + "");
 			} else { // 临时排名
 				jedis.zadd(rankKey, scoreRank.getScore(), "temp");
 				rank = jedis.zrevrank(rankKey, "temp");
 				jedis.zrem(rankKey, "temp");
-				jedis.set(prizeConditionKey(openid), false + "");
+				if (openid != null && openid.length() > 0)
+					jedis.set(prizeConditionKey(openid), false + "");
 			}
 			jedis.set(playerKey(openid), json);
 		} catch(Exception e) {
@@ -128,11 +130,11 @@ public class GameServiceImpl implements GameService {
 	}
 	
 	@Override
-	public boolean helpAward(String ip, String openid) {
+	public boolean helpAward(String ip, String openid, String code) {
 		Jedis jedis = null;
 		try { 
 			jedis = redisManager.getRedisInstance();
-			String key = helperKey(openid);
+			String key = helpKey(openid,code);
 			jedis.sadd(key, ip);
 		} catch(Exception e) {
 			logger.error(e.getMessage());
@@ -248,10 +250,38 @@ public class GameServiceImpl implements GameService {
 			redisManager.returnResource(jedis);
 			throw new Exception("获奖码已领取");
 		}
+		if (prize.isExchange()) {
+			redisManager.returnResource(jedis);
+			throw new Exception("获奖码已领取");
+		}
+		String helpkey = helpKey(openid,code);
+		Set<String> helper = jedis.smembers(helpkey);
+		if (helper == null) {
+			redisManager.returnResource(jedis);
+			throw new Exception("点击分享链接的人数不够，提示还缺2位好友帮您领奖 ");
+		}
+		if (helper.size() < 2) {
+			redisManager.returnResource(jedis);
+			throw new Exception("点击分享链接的人数不够，提示还缺" + (2 - helper.size())  + "位好友帮您领奖 ");
+		}
+		if (prize.getPrizeType().getType() == 0) {
+			prize.setExchange(true);
+			jedis.set(key, mapper.writeValueAsString(prize));
+		}
+		redisManager.returnResource(jedis);
+		return prize;
+	}
+	
+	public void addContact(Contact contact, String code) throws Exception {
+		Jedis jedis = redisManager.getRedisInstance();
+		String key = prizeFansKey(code);
+		String json = jedis.get(key);
+		ObjectMapper mapper = new ObjectMapper();
+		Prize prize = mapper.readValue(json, Prize.class);
+		prize.setContact(contact);
 		prize.setExchange(true);
 		jedis.set(key, mapper.writeValueAsString(prize));
 		redisManager.returnResource(jedis);
-		return prize;
 	}
 	
 	private PrizeType lotty(String openid) {
@@ -261,21 +291,30 @@ public class GameServiceImpl implements GameService {
 			int r = new Random().nextInt(100);
 			if (r >= 99) {// 1等奖
 				String countKey = dailyPrizeCountKey(PrizeType.LEVEL_1);
-				int count = Integer.parseInt(jedis.get(countKey));
-				if (count > 0) { // 每天抽取一名
-					return PrizeType.LEVEL_5;
+				String countStr = jedis.get(countKey);
+				int count = 0;
+				if (countStr != null && countStr.length() > 0) {
+					count = Integer.parseInt(countStr);
+					if (count > 0) { // 每天抽取一名
+						return PrizeType.LEVEL_5;
+					}
 				}
+				
 				if(hasPrize123(openid, jedis)) {// 1、2、3奖项每个用户只能中一次
 					return PrizeType.LEVEL_5;
 				}
 				jedis.sadd(fansPrizeRecordKey(openid), PrizeType.LEVEL_1.toString());// 记录用户中奖
-				jedis.set(countKey, 0 + "");
+				jedis.set(countKey, count + 1 + "");
 				return PrizeType.LEVEL_1;
 			} else if (r >= 94) {// 2等奖
 				String countKey = dailyPrizeCountKey(PrizeType.LEVEL_2);
-				int count = Integer.parseInt(jedis.get(countKey));
-				if (count > 2) { // 每天抽取2名
-					return PrizeType.LEVEL_5;
+				String countStr = jedis.get(countKey);
+				int count = 0;
+				if (countStr != null && countStr.length() > 0) {
+					count = Integer.parseInt(jedis.get(countKey));
+					if (count > 2) { // 每天抽取2名
+						return PrizeType.LEVEL_5;
+					}
 				}
 				if(hasPrize123(openid, jedis)) {// 1、2、3奖项每个用户只能中一次
 					return PrizeType.LEVEL_5;
@@ -285,9 +324,13 @@ public class GameServiceImpl implements GameService {
 				return PrizeType.LEVEL_2;
 			} else if (r >= 89) {// 3等奖
 				String countKey = dailyPrizeCountKey(PrizeType.LEVEL_3);
-				int count = Integer.parseInt(jedis.get(countKey));
-				if (count > 30) { // 每天抽取30名
-					return PrizeType.LEVEL_5;
+				String countStr = jedis.get(countKey);
+				int count = 0;
+				if (countStr != null && countStr.length() > 0) {
+					count = Integer.parseInt(jedis.get(countKey));
+					if (count > 30) { // 每天抽取30名
+						return PrizeType.LEVEL_5;
+					}
 				}
 				if(hasPrize123(openid, jedis)) {// 1、2、3奖项每个用户只能中一次
 					return PrizeType.LEVEL_5;
@@ -352,8 +395,8 @@ public class GameServiceImpl implements GameService {
 		return "article:";
 	}
 	
-	private String helperKey(String openid) {
-		return "award_help:" + openid + ":";
+	private String helpKey(String openid, String code) {
+		return "award_help:" + openid + ":" + code + "";
 	}
 
 	// 抽奖

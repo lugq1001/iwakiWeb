@@ -1,7 +1,6 @@
 package com.iwaki.web.controller;
 
 import java.io.UnsupportedEncodingException;
-import java.util.Random;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -16,6 +15,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.iwaki.web.model.Award;
+import com.iwaki.web.model.Contact;
 import com.iwaki.web.model.ScoreRank;
 import com.iwaki.web.model.prize.Prize;
 import com.iwaki.web.model.prize.PrizeType;
@@ -148,9 +148,9 @@ public class GameController {
 	} 
 
 	@RequestMapping(value = "/help", method = RequestMethod.GET)
-	public String help(HttpServletRequest request,HttpServletResponse resp, String help) {
+	public String help(HttpServletRequest request,HttpServletResponse resp, String help,String code) {
 		resp.setHeader("Access-Control-Allow-Origin", "*");
-		gameService.helpAward(request.getRemoteAddr(), help);
+		gameService.helpAward(request.getRemoteAddr(), help,code);
 		return "redirect:" + gameURL;
 	} 
 	
@@ -190,11 +190,41 @@ public class GameController {
 	
 	@RequestMapping(value = "/contact", method = RequestMethod.POST)
 	@ResponseBody
-	public Resp contact(HttpServletRequest request,HttpServletResponse resp,String name,String cellphone, String addr) {
+	public Resp contact(HttpServletRequest request,HttpServletResponse resp, String code, String name,String cellphone, String addr) {
 		resp.setHeader("Access-Control-Allow-Origin", "*");
 		Resp r = new Resp();
-		r.setResult(System.currentTimeMillis() % 2 == 0);
-		r.setDesc("输入信息不完整，请重新输入");
+		if (code == null || code.length() == 0) {
+			r.setResult(false);
+			r.setDesc("输入信息不完整，请重新输入");
+			return r;
+		}
+		if (name == null || name.length() == 0) {
+			r.setResult(false);
+			r.setDesc("输入信息不完整，请重新输入");
+			return r;
+		}
+		if (cellphone == null || cellphone.length() == 0) {
+			r.setResult(false);
+			r.setDesc("输入信息不完整，请重新输入");
+			return r;
+		}
+		if (addr == null || addr.length() == 0) {
+			r.setResult(false);
+			r.setDesc("输入信息不完整，请重新输入");
+			return r;
+		}
+		Contact c= new Contact();
+		c.setAddr(addr);
+		c.setCellphone(cellphone);
+		c.setName(name);
+		try {
+			gameService.addContact(c, code);
+			r.setResult(true);
+		} catch (Exception e) {
+			logger.error(e.getMessage());
+			r.setResult(false);
+			r.setDesc(e.getMessage());
+		}
 		return r;
 	}
 }

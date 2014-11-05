@@ -1,5 +1,7 @@
 package com.iwaki.web.model.prize;
 
+import com.iwaki.web.model.Contact;
+
 /**
  * 奖品
  * @author Administrator
@@ -18,6 +20,9 @@ public class Prize {
 	
 	// 奖品类型
 	private PrizeType prizeType;
+	
+	// 联系方式
+	private Contact contact;
 	
 	public static Prize makeLevel6Prize(String exchangeCode, String realCode) {
 		Prize p = new Prize();
@@ -57,6 +62,14 @@ public class Prize {
 
 	public void setRealCode(String realCode) {
 		this.realCode = realCode;
+	}
+
+	public Contact getContact() {
+		return contact;
+	}
+
+	public void setContact(Contact contact) {
+		this.contact = contact;
 	}
 	
 	
