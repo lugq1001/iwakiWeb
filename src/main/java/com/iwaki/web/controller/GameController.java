@@ -131,7 +131,7 @@ public class GameController {
 		try {
 			if (openid != null && openid.length() > 0) {
 				a = gameService.getFansAward(openid);
-				String url = serverURL + "game/help?help=" + openid;
+				String url = serverURL + "game/help?help=" + openid + "&code=" + a.getCode();
 				awardResp.setHelpUrl(url);
 			} else {
 				a = gameService.getGuestAward(request.getRemoteAddr());
