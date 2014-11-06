@@ -116,6 +116,7 @@ public class GameController {
 		if (openid == null || openid.length() == 0) {
 			return false;
 		}
+		logger.info("用户ip:" + openid  + " 接受用户申明");
 		gameService.acceptArticle(openid);
 		return true;
 	} 

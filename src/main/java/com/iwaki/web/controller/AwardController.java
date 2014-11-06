@@ -24,8 +24,8 @@ public class AwardController {
 	@RequestMapping(value = "/generate", method = RequestMethod.GET)
 	@ResponseBody
 	public boolean generate() {
-		generate50();
-		generate20();
+		//generate50();
+		//generate20();
 		generate10();
 		return true;
 	} 
@@ -34,7 +34,7 @@ public class AwardController {
 		Jedis jedis = null;
 		try { 
 			jedis = redisManager.getRedisInstance();
-		//jedis.ltrim(key(50), 1, 0);
+			//jedis.ltrim(key(50), 1, 0);
 			boolean exist = Boolean.parseBoolean(jedis.get(existkey(50)));
 			//boolean exist = false;
 			if (!exist) {
@@ -100,6 +100,12 @@ public class AwardController {
 					jedis.lpush(key, couponsC);
 					String couponsD = "IK1025C" + num + "E";
 					jedis.lpush(key, couponsD);
+					String couponsE = "IK1025D" + num + "F";
+					jedis.lpush(key, couponsE);
+					String couponsF = "IK1025E" + num + "G";
+					jedis.lpush(key, couponsF);
+					String couponsG = "IK1025F" + num + "H";
+					jedis.lpush(key, couponsG);
 					logger.info(couponsB + " " + couponsC + " " + couponsB);
 				}
 				

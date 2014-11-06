@@ -155,7 +155,7 @@ public class GameServiceImpl implements GameService {
 		Prize p;
 		while (true) {
 			code = 10000000 + r.nextInt(90000000) + "";
-			String key = prizeGuestKey(code);
+			String key = prizeCodeKey(code);
 			String val = jedis.get(key);
 			if (val == null || val.length() == 0) {
 				String realCodeKey = couponskey(PrizeType.LEVEL_6.getPrice());// 10元优惠券
@@ -176,6 +176,7 @@ public class GameServiceImpl implements GameService {
 		a.setLevel(level + "");
 		a.setDesc("游客您好！恭喜您获得" + level + "等奖哦！");
 		a.setCode(code); 
+		jedis.sadd(dailyPrizeKey(), code);
 		redisManager.returnResource(jedis);
 		return a;
 	}
@@ -190,7 +191,7 @@ public class GameServiceImpl implements GameService {
 		Prize p;
 		while (true) {
 			code = 10000000 + r.nextInt(90000000) + "";
-			String key = prizeFansKey(code);
+			String key = prizeCodeKey(code);
 			String val = jedis.get(key);
 			if (val == null || val.length() == 0) {
 				PrizeType type = lotty(openid);
@@ -219,6 +220,7 @@ public class GameServiceImpl implements GameService {
 				ObjectMapper mapper = new ObjectMapper();
 				String json = mapper.writeValueAsString(p);
 				jedis.set(key, json);
+				jedis.sadd(prize123RecordKey(PrizeType.LEVEL_1.toString()), fansPrizeRecordKey(openid));
 				break;
 			}
 		}
@@ -227,6 +229,7 @@ public class GameServiceImpl implements GameService {
 		a.setLevel(level + "");
 		a.setDesc("亲爱的粉丝您好！恭喜您获得" + level + "等奖," + p.getPrizeType().getPrizeName());
 		a.setCode(code); 
+		jedis.sadd(dailyPrizeKey(), code);
 		redisManager.returnResource(jedis);
 		return a;
 	}
@@ -234,43 +237,50 @@ public class GameServiceImpl implements GameService {
 	@Override
 	public Prize recvAward(String openid, String code) throws Exception {
 		Jedis jedis = redisManager.getRedisInstance();
-		String key;
-		if(openid == null || openid.length() == 0)
-			key = prizeGuestKey(code);
-		else 
-			key = prizeFansKey(code);
+		if(openid == null || openid.length() == 0) {
+			redisManager.returnResource(jedis);
+			throw new Exception("无效请求");
+		}
+		String key = prizeCodeKey(code);
 		String val = jedis.get(key);
 		if(val == null || val.length() == 0) {
 			redisManager.returnResource(jedis);
-			throw new Exception("获奖码无效");
+			logger.error("用户" + openid  + " 获奖码不存在");
+			throw new Exception("获奖码无效");	
 		}
 		ObjectMapper mapper = new ObjectMapper();
 		Prize prize = mapper.readValue(val, Prize.class);
 		if (prize.isExchange()) {
 			redisManager.returnResource(jedis);
+			logger.error("用户" + openid  + " 获奖码已领取");
 			throw new Exception("获奖码已领取");
 		}
-		String helpkey = helpKey(openid,code);
-		Set<String> helper = jedis.smembers(helpkey);
-		if (helper == null) {
-			redisManager.returnResource(jedis);
-			throw new Exception("点击分享链接的人数不够，还缺2位好友帮您领奖 ");
-		}
-		if (helper.size() < 2) {
-			redisManager.returnResource(jedis);
-			throw new Exception("点击分享链接的人数不够，还缺" + (2 - helper.size())  + "位好友帮您领奖 ");
+		if (prize.getPrizeType() != PrizeType.LEVEL_6) {
+			String helpkey = helpKey(openid,code);
+			Set<String> helper = jedis.smembers(helpkey);
+			if (helper == null) {
+				redisManager.returnResource(jedis);
+				logger.error("用户" + openid  + " 点击分享链接的人数不够，还缺2位好友帮您领奖");
+				throw new Exception("点击分享链接的人数不够，还缺2位好友帮您领奖 ");
+			}
+			if (helper.size() < 2) {
+				redisManager.returnResource(jedis);
+				logger.error("用户" + openid  + "点击分享链接的人数不够，还缺" + (2 - helper.size())  + "位好友帮您领奖 ");
+				throw new Exception("点击分享链接的人数不够，还缺" + (2 - helper.size())  + "位好友帮您领奖 ");
+			}
 		}
 		if (prize.getPrizeType().getType() == 0) {
 			prize.setExchange(true);
 			jedis.set(key, mapper.writeValueAsString(prize));
 		}
 		redisManager.returnResource(jedis);
+		
 		return prize;
 	}
 	
 	public void addContact(Contact contact, String code) throws Exception {
 		Jedis jedis = redisManager.getRedisInstance();
-		String key = prizeFansKey(code);
+		String key = prizeCodeKey(code);
 		String json = jedis.get(key);
 		ObjectMapper mapper = new ObjectMapper();
 		Prize prize = mapper.readValue(json, Prize.class);
@@ -396,15 +406,8 @@ public class GameServiceImpl implements GameService {
 	}
 
 	// 抽奖
-	private String prizeGuestKey(String code) {
-		return "prize_guest:" + code;
-	}
-	
-	// 抽奖
-	private String prizeFansKey(String code) {
-		SimpleDateFormat f = new SimpleDateFormat("yyyy-MM-dd");
-		String date = f.format(new Date());
-		return "prize_fans:" + date + ":" + code;
+	private String prizeCodeKey(String code) {
+		return "prize_code:" + code;
 	}
 
 	// 奖券key
@@ -427,5 +430,16 @@ public class GameServiceImpl implements GameService {
 	// 粉丝获奖记录
 	private String fansPrizeRecordKey(String openid) {
 		return "prize_record:" + openid + ":";
+	}
+	
+	// 大奖获取记录
+	private String prize123RecordKey(String level) {
+		return "prize_level:" + level + ":";
+	}
+	
+	private String dailyPrizeKey() {
+		SimpleDateFormat f = new SimpleDateFormat("yyyy-MM-dd");
+		String date = f.format(new Date());
+		return "prize_index:" + date + ":";
 	}
 }
