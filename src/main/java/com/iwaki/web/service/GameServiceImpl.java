@@ -220,7 +220,7 @@ public class GameServiceImpl implements GameService {
 				ObjectMapper mapper = new ObjectMapper();
 				String json = mapper.writeValueAsString(p);
 				jedis.set(key, json);
-				jedis.sadd(prize123RecordKey(PrizeType.LEVEL_1.toString()), fansPrizeRecordKey(openid));
+				jedis.sadd(prize123RecordKey(p.getPrizeType().toString()), fansPrizeRecordKey(openid));
 				break;
 			}
 		}
