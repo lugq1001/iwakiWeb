@@ -250,19 +250,15 @@ public class GameServiceImpl implements GameService {
 			redisManager.returnResource(jedis);
 			throw new Exception("获奖码已领取");
 		}
-		if (prize.isExchange()) {
-			redisManager.returnResource(jedis);
-			throw new Exception("获奖码已领取");
-		}
 		String helpkey = helpKey(openid,code);
 		Set<String> helper = jedis.smembers(helpkey);
 		if (helper == null) {
 			redisManager.returnResource(jedis);
-			throw new Exception("点击分享链接的人数不够，提示还缺2位好友帮您领奖 ");
+			throw new Exception("点击分享链接的人数不够，还缺2位好友帮您领奖 ");
 		}
 		if (helper.size() < 2) {
 			redisManager.returnResource(jedis);
-			throw new Exception("点击分享链接的人数不够，提示还缺" + (2 - helper.size())  + "位好友帮您领奖 ");
+			throw new Exception("点击分享链接的人数不够，还缺" + (2 - helper.size())  + "位好友帮您领奖 ");
 		}
 		if (prize.getPrizeType().getType() == 0) {
 			prize.setExchange(true);

@@ -96,7 +96,7 @@ public class WXController {
 				ps.write(xml.getBytes("UTF-8"));  
 			} else if (eventKey.equals("award")) {// 我要领奖
 				String xml = OutputMessage.createImgResp(inputMsg.getFromUserName(), inputMsg.getToUserName(), 
-						"我要领奖", "点击进入领奖", 
+						"我要领奖", "点击进入领奖'30天天天送大礼活动:2014年11月7日至12月6日'", 
 						"http://112.65.246.168:81/images/wx_award_img.jpg", 
 						"http://112.65.246.168:81/game/contact.html?openid=" + inputMsg.getFromUserName() + "&");
 				logger.info("响应：" + xml);

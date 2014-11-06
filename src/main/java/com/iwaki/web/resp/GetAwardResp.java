@@ -14,6 +14,9 @@ public class GetAwardResp extends Resp {
 	// 实物名称
 	private String award_name = "";
 	
+	// 实物名称
+	private String level = "";
+	
 	// 一等奖附加提示
 	private String tips = "";
 
@@ -55,5 +58,13 @@ public class GetAwardResp extends Resp {
 
 	public void setTips(String tips) {
 		this.tips = tips;
+	}
+
+	public String getLevel() {
+		return level;
+	}
+
+	public void setLevel(String level) {
+		this.level = level;
 	}
 }

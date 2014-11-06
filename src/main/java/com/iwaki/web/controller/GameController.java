@@ -167,6 +167,25 @@ public class GameController {
 	public GetAwardResp getAward(HttpServletRequest request,HttpServletResponse resp,String openid,String code) {
 		resp.setHeader("Access-Control-Allow-Origin", "*");
 		GetAwardResp getAwardResp = new GetAwardResp();
+/*		Prize p2 = new Prize();
+		p2.setExchange(false);
+		p2.setExchangeCode("231312321");
+		p2.setPrizeType(PrizeType.LEVEL_5);
+		p2.setRealCode("123213213");
+		
+		getAwardResp.setResult(true);
+		getAwardResp.setDesc("");
+		getAwardResp.setAward_name(p2.getPrizeType().getPrizeName());
+		getAwardResp.setCode(p2.getRealCode());
+		getAwardResp.setPrice(p2.getPrizeType().getPrice() + "");
+		getAwardResp.setLevel(p2.getPrizeType().getLevel() + "");
+		if(p2.getPrizeType() == PrizeType.LEVEL_1)
+			getAwardResp.setTips("*此奖品为原装进口，预计在2014年11月25日左右为你寄出，故请耐心等待它漂洋过海来到你身边。谢谢理解。");
+		else
+			getAwardResp.setTips("");
+		getAwardResp.setType(p2.getPrizeType().getType() + "");
+		return getAwardResp;*/
+		
 		try {
 			Prize p = gameService.recvAward(openid, code);
 			getAwardResp.setResult(true);
