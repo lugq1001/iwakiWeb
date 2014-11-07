@@ -9,6 +9,15 @@ public class ScoreRank {
 	private String avatar;
 	
 	private long score;
+	
+	public static ScoreRank topRankUser(String openid, String nickname, long score) {
+		ScoreRank r = new ScoreRank();
+		r.setOpenid(openid);
+		r.setScore(score);
+		r.setNickname(nickname);
+		r.setAvatar("");
+		return r;
+	}
 
 	public String getOpenid() {
 		return openid;
