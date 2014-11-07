@@ -176,7 +176,8 @@ public class GameServiceImpl implements GameService {
 		a.setLevel(level + "");
 		a.setDesc("游客您好！恭喜您获得" + level + "等奖哦！");
 		a.setCode(code); 
-		jedis.sadd(dailyPrizeKey(), code);
+		//jedis.sadd(dailyPrizeKey(), code);
+		jedis.zadd(dailyPrizeKey(), System.currentTimeMillis(), code);
 		redisManager.returnResource(jedis);
 		return a;
 	}
@@ -229,7 +230,8 @@ public class GameServiceImpl implements GameService {
 		a.setLevel(level + "");
 		a.setDesc("亲爱的粉丝您好！恭喜您获得" + level + "等奖," + p.getPrizeType().getPrizeName());
 		a.setCode(code); 
-		jedis.sadd(dailyPrizeKey(), code);
+		//jedis.sadd(dailyPrizeKey(), code);
+		jedis.zadd(dailyPrizeKey(), System.currentTimeMillis(), code);
 		redisManager.returnResource(jedis);
 		return a;
 	}
@@ -440,6 +442,6 @@ public class GameServiceImpl implements GameService {
 	private String dailyPrizeKey() {
 		SimpleDateFormat f = new SimpleDateFormat("yyyy-MM-dd");
 		String date = f.format(new Date());
-		return "prize_index:" + date + ":";
+		return "daily_prize_index:" + date + ":";
 	}
 }
