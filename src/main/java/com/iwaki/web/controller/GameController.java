@@ -170,34 +170,34 @@ public class GameController {
 		GetAwardResp getAwardResp = new GetAwardResp();
 		
 		logger.error("领奖-code:" + code + " openid:" + openid);
-		if(code.equals("888881")) {
-			getAwardResp.setResult(true);
-			getAwardResp.setDesc("");
-			getAwardResp.setAward_name(PrizeType.LEVEL_1.getPrizeName());
-			getAwardResp.setCode("888881");
-			getAwardResp.setPrice(PrizeType.LEVEL_1.getPrice() + "");
-			getAwardResp.setTips("*此奖品为原装进口，预计在2014年11月20日左右为你寄出，故请耐心等待它漂洋过海来到你身边。谢谢理解。");
-			getAwardResp.setType(PrizeType.LEVEL_1.getType() + "");
-			return getAwardResp;
-		} else if(code.equals("888882")) {
-			getAwardResp.setResult(true);
-			getAwardResp.setDesc("");
-			getAwardResp.setAward_name(PrizeType.LEVEL_2.getPrizeName());
-			getAwardResp.setCode("888882");
-			getAwardResp.setPrice(PrizeType.LEVEL_2.getPrice() + "");
-			//getAwardResp.setTips("*此奖品为原装进口，预计在2014年11月20日左右为你寄出，故请耐心等待它漂洋过海来到你身边。谢谢理解。");
-			getAwardResp.setType(PrizeType.LEVEL_2.getType() + "");
-			return getAwardResp;
-		}else if (code.equals("888883")) {
-			getAwardResp.setResult(true);
-			getAwardResp.setDesc("");
-			getAwardResp.setAward_name(PrizeType.LEVEL_3.getPrizeName());
-			getAwardResp.setCode("888883");
-			getAwardResp.setPrice(PrizeType.LEVEL_3.getPrice() + "");
-			//getAwardResp.setTips("*此奖品为原装进口，预计在2014年11月20日左右为你寄出，故请耐心等待它漂洋过海来到你身边。谢谢理解。");
-			getAwardResp.setType(PrizeType.LEVEL_3.getType() + "");
-			return getAwardResp;
-		}
+//		if(code.equals("888881")) {
+//			getAwardResp.setResult(true);
+//			getAwardResp.setDesc("");
+//			getAwardResp.setAward_name(PrizeType.LEVEL_1.getPrizeName());
+//			getAwardResp.setCode("888881");
+//			getAwardResp.setPrice(PrizeType.LEVEL_1.getPrice() + "");
+//			getAwardResp.setTips("*此奖品为原装进口，预计在2014年11月20日左右为你寄出，故请耐心等待它漂洋过海来到你身边。谢谢理解。");
+//			getAwardResp.setType(PrizeType.LEVEL_1.getType() + "");
+//			return getAwardResp;
+//		} else if(code.equals("888882")) {
+//			getAwardResp.setResult(true);
+//			getAwardResp.setDesc("");
+//			getAwardResp.setAward_name(PrizeType.LEVEL_2.getPrizeName());
+//			getAwardResp.setCode("888882");
+//			getAwardResp.setPrice(PrizeType.LEVEL_2.getPrice() + "");
+//			//getAwardResp.setTips("*此奖品为原装进口，预计在2014年11月20日左右为你寄出，故请耐心等待它漂洋过海来到你身边。谢谢理解。");
+//			getAwardResp.setType(PrizeType.LEVEL_2.getType() + "");
+//			return getAwardResp;
+//		}else if (code.equals("888883")) {
+//			getAwardResp.setResult(true);
+//			getAwardResp.setDesc("");
+//			getAwardResp.setAward_name(PrizeType.LEVEL_3.getPrizeName());
+//			getAwardResp.setCode("888883");
+//			getAwardResp.setPrice(PrizeType.LEVEL_3.getPrice() + "");
+//			//getAwardResp.setTips("*此奖品为原装进口，预计在2014年11月20日左右为你寄出，故请耐心等待它漂洋过海来到你身边。谢谢理解。");
+//			getAwardResp.setType(PrizeType.LEVEL_3.getType() + "");
+//			return getAwardResp;
+//		}
 		
 /*		Prize p2 = new Prize();
 		p2.setExchange(false);

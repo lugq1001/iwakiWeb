@@ -218,6 +218,7 @@ public class GameServiceImpl implements GameService {
 				p.setPrizeType(type);
 				p.setRealCode(realCode);
 				p.setExchangeCode(code);
+				p.setExchangeCodeTimpstamp(System.currentTimeMillis());
 				ObjectMapper mapper = new ObjectMapper();
 				String json = mapper.writeValueAsString(p);
 				jedis.set(key, json);
@@ -273,6 +274,7 @@ public class GameServiceImpl implements GameService {
 		}
 		if (prize.getPrizeType().getType() == 0) {
 			prize.setExchange(true);
+			prize.setRealCodeTimpstamp(System.currentTimeMillis());
 			jedis.set(key, mapper.writeValueAsString(prize));
 		}
 		redisManager.returnResource(jedis);
@@ -288,6 +290,7 @@ public class GameServiceImpl implements GameService {
 		Prize prize = mapper.readValue(json, Prize.class);
 		prize.setContact(contact);
 		prize.setExchange(true);
+		prize.setRealCodeTimpstamp(System.currentTimeMillis());
 		jedis.set(key, mapper.writeValueAsString(prize));
 		redisManager.returnResource(jedis);
 	}
@@ -314,7 +317,7 @@ public class GameServiceImpl implements GameService {
 				jedis.sadd(fansPrizeRecordKey(openid), PrizeType.LEVEL_1.toString());// 记录用户中奖
 				jedis.set(countKey, count + 1 + "");
 				return PrizeType.LEVEL_1;
-			} else if (r >= 94) {// 2等奖
+			} else if (r >= 98) {// 2等奖
 				String countKey = dailyPrizeCountKey(PrizeType.LEVEL_2);
 				String countStr = jedis.get(countKey);
 				int count = 0;
@@ -330,7 +333,7 @@ public class GameServiceImpl implements GameService {
 				jedis.sadd(fansPrizeRecordKey(openid), PrizeType.LEVEL_2.toString());// 记录用户中奖
 				jedis.set(countKey, count + 1 + "");
 				return PrizeType.LEVEL_2;
-			} else if (r >= 89) {// 3等奖
+			} else if (r >= 97) {// 3等奖
 				String countKey = dailyPrizeCountKey(PrizeType.LEVEL_3);
 				String countStr = jedis.get(countKey);
 				int count = 0;
@@ -346,7 +349,7 @@ public class GameServiceImpl implements GameService {
 				jedis.sadd(fansPrizeRecordKey(openid), PrizeType.LEVEL_3.toString());// 记录用户中奖
 				jedis.set(countKey, count + 1 + "");
 				return PrizeType.LEVEL_3;
-			} else if (r >= 70) {// 4等奖
+			} else if (r >= 96) {// 4等奖
 				if(hasPrize1234(openid, jedis)) {//1、2、3奖项每个用户只能中一次，即只要中过，1~4等奖不能再得  拿过一次4等奖，还能拿1~3等奖但不能再拿4等奖
 					return PrizeType.LEVEL_5;
 				}

@@ -24,11 +24,16 @@ public class Prize {
 	// 联系方式
 	private Contact contact;
 	
+	private long exchangeCodeTimpstamp;
+	
+	private long realCodeTimpstamp;
+	
 	public static Prize makeLevel6Prize(String exchangeCode, String realCode) {
 		Prize p = new Prize();
 		p.setExchangeCode(exchangeCode);
 		p.setPrizeType(PrizeType.LEVEL_6);
 		p.setRealCode(realCode);
+		p.setExchangeCodeTimpstamp(System.currentTimeMillis());
 		return p;
 	}
 
@@ -70,6 +75,22 @@ public class Prize {
 
 	public void setContact(Contact contact) {
 		this.contact = contact;
+	}
+
+	public long getExchangeCodeTimpstamp() {
+		return exchangeCodeTimpstamp;
+	}
+
+	public void setExchangeCodeTimpstamp(long exchangeCodeTimpstamp) {
+		this.exchangeCodeTimpstamp = exchangeCodeTimpstamp;
+	}
+
+	public long getRealCodeTimpstamp() {
+		return realCodeTimpstamp;
+	}
+
+	public void setRealCodeTimpstamp(long realCodeTimpstamp) {
+		this.realCodeTimpstamp = realCodeTimpstamp;
 	}
 	
 	
