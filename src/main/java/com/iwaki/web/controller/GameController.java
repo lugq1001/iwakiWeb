@@ -152,6 +152,7 @@ public class GameController {
 	public String help(HttpServletRequest request,HttpServletResponse resp, String help,String code) {
 		resp.setHeader("Access-Control-Allow-Origin", "*");
 		gameService.helpAward(request.getRemoteAddr(), help,code);
+		logger.info("help:openid=" + help + " code=" + code);
 		return "redirect:" + gameURL;
 	} 
 	

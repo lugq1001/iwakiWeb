@@ -151,7 +151,7 @@ public class GameServiceImpl implements GameService {
 		Jedis jedis = null;
 		try { 
 			jedis = redisManager.getRedisInstance();
-			String key = helpKey(openid,code);
+			String key = helpKey(code);
 			jedis.sadd(key, ip);
 		} catch(Exception e) {
 			logger.error(e.getMessage());
@@ -282,7 +282,7 @@ public class GameServiceImpl implements GameService {
 			throw new Exception("获奖码已领取");
 		}
 		if (prize.getPrizeType() != PrizeType.LEVEL_6) {
-			String helpkey = helpKey(openid,code);
+			String helpkey = helpKey(code);
 			Set<String> helper = jedis.smembers(helpkey);
 			if (helper == null) {
 				redisManager.returnResource(jedis);
@@ -429,8 +429,8 @@ public class GameServiceImpl implements GameService {
 		return "article:";
 	}
 	
-	private String helpKey(String openid, String code) {
-		return "award_help:" + openid + ":" + code + "";
+	private String helpKey(String code) {
+		return "award_help:" + code + ":";
 	}
 
 	// 抽奖
