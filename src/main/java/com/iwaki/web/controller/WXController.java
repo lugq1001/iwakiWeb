@@ -101,6 +101,13 @@ public class WXController {
 						"http://112.65.246.168:81/game/contact.html?openid=" + inputMsg.getFromUserName() + "&");
 				logger.info("响应：" + xml);
 				ps.write(xml.getBytes("UTF-8"));  
+			} else if (eventKey.equals("subscribe")) {// 关注自动回复
+				String xml = OutputMessage.createImgResp(inputMsg.getFromUserName(), inputMsg.getToUserName(), 
+						"关于宝藏游戏。。。国王有话说 ", "关于宝藏游戏。。。国王有话说", 
+						"http://112.65.246.168:81/images/0.jpg", 
+						"http://mp.weixin.qq.com/s?__biz=MzA3NzAwOTkxNQ==&mid=200802268&idx=1&sn=67c76b4f58e09a50f9eccbb021a3067e#rd");
+				logger.info("响应：" + xml);
+				ps.write(xml.getBytes("UTF-8"));  
 			}
 		}
 		ps.write("".getBytes("UTF-8"));  

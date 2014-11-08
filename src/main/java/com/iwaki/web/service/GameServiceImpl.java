@@ -152,7 +152,10 @@ public class GameServiceImpl implements GameService {
 		try { 
 			jedis = redisManager.getRedisInstance();
 			String key = helpKey(code);
-			jedis.sadd(key, ip);
+			Set<String> helper = jedis.smembers(key);
+			if (helper == null || helper.size() < 2) {
+				jedis.sadd(key, ip);
+			}
 		} catch(Exception e) {
 			logger.error(e.getMessage());
 		} finally {
@@ -195,6 +198,13 @@ public class GameServiceImpl implements GameService {
 		a.setCode(code); 
 		//jedis.sadd(dailyPrizeKey(), code);
 		jedis.zadd(dailyPrizeKey(), System.currentTimeMillis(), code);
+		String dailyPlayerCountKey = dailyPlayerCountKey();
+		String value = jedis.get(dailyPlayerCountKey);
+		if (value == null || value.length() == 0) {
+			value = "0";
+		}
+		long count = Long.parseLong(value);
+		jedis.set(dailyPlayerCountKey,(count + 1) + "");
 		redisManager.returnResource(jedis);
 		return a;
 	}
@@ -256,6 +266,13 @@ public class GameServiceImpl implements GameService {
 		a.setCode(code); 
 		//jedis.sadd(dailyPrizeKey(), code);
 		jedis.zadd(dailyPrizeKey(), System.currentTimeMillis(), code);
+		String dailyPlayerCountKey = dailyPlayerCountKey();
+		String value = jedis.get(dailyPlayerCountKey);
+		if (value == null || value.length() == 0) {
+			value = "0";
+		}
+		long count = Long.parseLong(value);
+		jedis.set(dailyPlayerCountKey,(count + 1) + "");
 		redisManager.returnResource(jedis);
 		return a;
 	}
@@ -299,7 +316,7 @@ public class GameServiceImpl implements GameService {
 			prize.setExchange(true);
 			prize.setRealCodeTimpstamp(System.currentTimeMillis());
 			jedis.set(key, mapper.writeValueAsString(prize));
-		}
+		} 
 		redisManager.returnResource(jedis);
 		
 		return prize;
@@ -474,5 +491,11 @@ public class GameServiceImpl implements GameService {
 	// 粉丝5等奖奖券记录
 	private String fansPrize5Key(String openid) {
 		return "prize_code_level5:" + openid + ":";
+	}
+	
+	private String dailyPlayerCountKey() {
+		SimpleDateFormat f = new SimpleDateFormat("yyyy-MM-dd");
+		String date = f.format(new Date());
+		return "daily_player_count:" + date + ":";
 	}
 }
