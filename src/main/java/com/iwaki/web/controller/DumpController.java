@@ -87,16 +87,16 @@ public class DumpController {
 		// 生成名为“第一页”的工作表，参数0表示这是第一页
 		WritableSheet sheet = book.createSheet("实物奖", 0);
 		int size = materialPrizes.size();
-		SimpleDateFormat sdf2 = new SimpleDateFormat("yyyy年MM月dd日HH点MM分");
+		//SimpleDateFormat sdf2 = new SimpleDateFormat("yyyy年MM月dd日HH点MM分");
 		
 		String titles[] = {"兑奖码","是否领取","奖品名称","奖品等级","姓名","手机","地址"};
-		for (int i = 0; i < size; i ++) {
-			Label l = new Label(0, i, titles[i]);
+		for (int i = 0; i < titles.length; i ++) {
+			Label l = new Label(i, 0, titles[i]);
 			sheet.addCell(l);
 		}
 		
 		for (int i = 1; i <= size; i ++) {
-			Prize p = materialPrizes.get(i);
+			Prize p = materialPrizes.get(i - 1);
 			Label l1 = new Label(0, i, p.getExchangeCode());
 			Label l2 = new Label(1, i, p.isExchange() ? "领取" : "未领取");
 			PrizeType t = p.getPrizeType();
@@ -106,12 +106,12 @@ public class DumpController {
 			//Label l6 = new Label(5, i, sdf2.format(new Date(p.getRealCodeTimpstamp() - 28382132L)));
 			Contact c = p.getContact();
 			if (c != null) {
-				Label l7 = new Label(6, i, c.getName());
-				Label l8 = new Label(7, i, c.getCellphone());
-				Label l9 = new Label(8, i, c.getAddr());
+				Label l5 = new Label(4, i, c.getName());
+				Label l6 = new Label(5, i, c.getCellphone());
+				Label l7 = new Label(6, i, c.getAddr());
+				sheet.addCell(l5);
+				sheet.addCell(l6);
 				sheet.addCell(l7);
-				sheet.addCell(l8);
-				sheet.addCell(l9);
 			}
 			sheet.addCell(l1);
 			sheet.addCell(l2);
@@ -123,8 +123,8 @@ public class DumpController {
 		
 		WritableSheet sheet2 = book.createSheet("统计", 1);
 		String titles2[] = {"领奖总人数","已兑换人数","当日游戏人数"};
-		for (int i = 0; i < size; i ++) {
-			Label l = new Label(0, i, titles2[i]);
+		for (int i = 0; i < titles2.length; i ++) {
+			Label l = new Label(i, 0, titles2[i]);
 			sheet2.addCell(l);
 		}
 		

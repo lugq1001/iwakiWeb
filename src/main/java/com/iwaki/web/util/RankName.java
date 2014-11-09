@@ -14,7 +14,8 @@ public class RankName {
 		"涛涛",
 		"zhaic82",
 		"blueboxer",
-		"mckk10"};
+		"mckk10",
+		"黄梅美"};
 	public static String names2[] = {
 		"孙鹏",
 		"程思远",
@@ -26,6 +27,7 @@ public class RankName {
 		"lgboyz",
 		"qq747379",
 		"qq466747701",
+		"love鑫"
 	};
 	
 	public static String names3[] = {
@@ -39,5 +41,6 @@ public class RankName {
 		"YUI",
 		"JACK王",
 		"hasB",
+		"tcy"
 	};
 }
