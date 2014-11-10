@@ -64,7 +64,12 @@ public class DumpController {
 		ObjectMapper mapper = new ObjectMapper();
 		List<Prize> allPrizes = new ArrayList<Prize>();
 		List<Prize> materialPrizes = new ArrayList<Prize>();
-		long exchangeCount = 0;
+		long lv4Count = 0;
+		long lv4ExchangeCount = 0;
+		long lv5Count = 0;
+		long lv5ExchangeCount = 0;
+		long lv6Count = 0;
+		long lv6ExchangeCount = 0;
 		for (String code : codes) {
 			String json = jedis.get(prizeCodeKey(code));
 			if (json == null || json.length() == 0)
@@ -75,8 +80,23 @@ public class DumpController {
 			if(p.getPrizeType().getType() == 1) { //实物
 				materialPrizes.add(p);
 			}
-			if (p.isExchange())
-				exchangeCount ++;
+			if (p.getPrizeType() == PrizeType.LEVEL_4) {
+				lv4Count ++ ;
+				if (p.isExchange()) {
+					lv4ExchangeCount ++;
+				}
+			} else if (p.getPrizeType() == PrizeType.LEVEL_5) {
+				lv5Count ++ ;
+				if (p.isExchange()) {
+					lv5ExchangeCount ++;
+				}
+			} else if (p.getPrizeType() == PrizeType.LEVEL_6) {
+				lv6Count ++ ;
+				if (p.isExchange()) {
+					lv6ExchangeCount ++;
+				}
+			}
+				
 		}
 		
 		
@@ -122,19 +142,20 @@ public class DumpController {
 		}
 		
 		WritableSheet sheet2 = book.createSheet("统计", 1);
-		String titles2[] = {"领奖总人数","已兑换人数","当日游戏人数"};
+		String titles2[] = {"4等奖领取人数/4等奖总人数","5等奖领取人数/5等奖总人数","6等奖领取人数/6等奖总人数","当日游戏人数"};
 		for (int i = 0; i < titles2.length; i ++) {
 			Label l = new Label(i, 0, titles2[i]);
 			sheet2.addCell(l);
 		}
 		
-		Label l1 = new Label(0, 1, allPrizes.size() + "");
-		Label l2 = new Label(1, 1, exchangeCount + "");
-		Label l3 = new Label(2, 1, jedis.get(dailyPlayerCountKey(d)));
+		Label l1 = new Label(0, 1, lv4ExchangeCount + "/" + lv4Count);
+		Label l2 = new Label(1, 1, lv5ExchangeCount + "/" + lv5Count);
+		Label l3 = new Label(2, 1, lv6ExchangeCount + "/" + lv6Count);
+		Label l4 = new Label(3, 1, jedis.get(dailyPlayerCountKey(d)));
 		sheet2.addCell(l1);
 		sheet2.addCell(l2);
 		sheet2.addCell(l3);
-		
+		sheet2.addCell(l4);
 		book.write();
 		book.close();
 
