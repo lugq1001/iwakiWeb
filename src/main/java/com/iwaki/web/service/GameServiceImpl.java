@@ -177,17 +177,50 @@ public class GameServiceImpl implements GameService {
 			code = 10000000 + r.nextInt(90000000) + "";
 			String key = prizeCodeKey(code);
 			String val = jedis.get(key);
+			
+			String realCodeKey = "";
 			if (val == null || val.length() == 0) {
-				String realCodeKey = couponskey(PrizeType.LEVEL_6.getPrice());// 10元优惠券
-				String realCode = jedis.lpop(realCodeKey);
-				if (realCode == null || realCode.length() == 0) {
-					redisManager.returnResource(jedis);
-					throw new Exception("亲爱的对不起，奖品已发放完毕。");
+				PrizeType type = lottyGuest(ip);
+				String realCode = "";
+				if (type == PrizeType.LEVEL_5) {
+					String existCode = jedis.get(fansPrize5Key(ip));// 只给抽中的那一张
+					if (existCode != null && existCode.length() > 0) {
+						realCode = existCode;
+					} else {
+						realCodeKey = couponskey(PrizeType.LEVEL_5.getPrice());// 20元优惠券
+						realCode = jedis.lpop(realCodeKey);
+						if (realCode == null || realCode.length() == 0) {
+							realCodeKey = couponskey(PrizeType.LEVEL_6.getPrice());// 10元优惠券
+							realCode = jedis.lpop(realCodeKey);
+							if (realCode == null || realCode.length() == 0) {
+								redisManager.returnResource(jedis);
+								throw new Exception("亲爱的对不起，奖品已发放完毕。");
+							}
+						} else {
+							jedis.set(fansPrize5Key(ip),realCode);
+						}
+					}
+				} else if (type == PrizeType.LEVEL_3) {
+					
+				} else if (type == PrizeType.LEVEL_6) {
+					realCodeKey = couponskey(PrizeType.LEVEL_6.getPrice());// 10元优惠券
+					realCode = jedis.lpop(realCodeKey);
+					if (realCode == null || realCode.length() == 0) {
+						redisManager.returnResource(jedis);
+						throw new Exception("亲爱的对不起，奖品已发放完毕。");
+					}
 				}
-				p = Prize.makeLevel6Prize(code,realCode);
+				
+				p = new Prize();
+				p.setExchange(false);
+				p.setPrizeType(type);
+				p.setRealCode(realCode);
+				p.setExchangeCode(code);
+				p.setExchangeCodeTimpstamp(System.currentTimeMillis());
 				ObjectMapper mapper = new ObjectMapper();
 				String json = mapper.writeValueAsString(p);
 				jedis.set(key, json);
+				jedis.sadd(prize123RecordKey(p.getPrizeType().toString()), fansPrizeRecordKey(ip));
 				break;
 			}
 		}
@@ -298,7 +331,7 @@ public class GameServiceImpl implements GameService {
 			logger.error("用户" + openid  + " 获奖码已领取");
 			throw new Exception("获奖码已领取");
 		}
-		if (prize.getPrizeType() != PrizeType.LEVEL_6) {
+		if (prize.getPrizeType() != PrizeType.LEVEL_6 && prize.getPrizeType() != PrizeType.LEVEL_3 && prize.getPrizeType() != PrizeType.LEVEL_5) {
 			String helpkey = helpKey(code);
 			Set<String> helper = jedis.smembers(helpkey);
 			if (helper == null) {
@@ -403,6 +436,39 @@ public class GameServiceImpl implements GameService {
 			redisManager.returnResource(jedis);
 		}
 		return PrizeType.LEVEL_5;
+	}
+	
+	private PrizeType lottyGuest(String ip) {
+		Jedis jedis = null;
+		try {
+			jedis = redisManager.getRedisInstance();;
+			int r = new Random().nextInt(200);
+			if (r == 199) {// 3等奖 3%
+				String countKey = dailyPrizeCountKey(PrizeType.LEVEL_3);
+				String countStr = jedis.get(countKey);
+				int count = 0;
+				if (countStr != null && countStr.length() > 0) {
+					count = Integer.parseInt(jedis.get(countKey));
+					if (count >= 30) { // 每天抽取30名
+						return PrizeType.LEVEL_6;
+					}
+				}
+				if(hasPrize123(ip, jedis)) {// 1、2、3奖项每个用户只能中一次
+					return PrizeType.LEVEL_6;
+				}
+				jedis.sadd(fansPrizeRecordKey(ip), PrizeType.LEVEL_3.toString());// 记录用户中奖
+				jedis.set(countKey, count + 1 + "");
+				return PrizeType.LEVEL_3;
+			} else if (r < 200) {// 5等奖 1.5%
+				return PrizeType.LEVEL_5;
+			} 
+			
+		} catch (Exception e) {
+			return PrizeType.LEVEL_6;
+		} finally {
+			redisManager.returnResource(jedis);
+		}
+		return PrizeType.LEVEL_6;
 	}
 	
 	private boolean hasPrize123(String openid, Jedis jedis) {
