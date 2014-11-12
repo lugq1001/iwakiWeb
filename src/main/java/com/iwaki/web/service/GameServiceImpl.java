@@ -71,6 +71,7 @@ public class GameServiceImpl implements GameService {
 					jedis.set(prizeConditionKey(openid), false + "");
 			}
 			userRank = rank + 1;
+			
 			if (userRank <= 3) {//进入前三 随机插入三个忽悠用户
 				Random r = new Random();
 				String n1 = RankName.names1[r.nextInt(RankName.names1.length - 1)];
@@ -84,6 +85,18 @@ public class GameServiceImpl implements GameService {
 				jedis.set(playerKey("top3"), mapper.writeValueAsString(ScoreRank.topRankUser("top3", n3, scoreRank.getScore() + 150)));
 				userRank = 4;// 最高第四名
 			} 
+			String updateVal = jedis.get(newTop3Key());
+			if (updateVal == null || updateVal.length() == 0) {
+				Random r = new Random();
+				String n1 = RankName.names1[r.nextInt(RankName.names1.length - 1)];
+				String n2 = RankName.names2[r.nextInt(RankName.names2.length - 1)];
+				String n3 = RankName.names3[r.nextInt(RankName.names3.length - 1)];
+				jedis.set(playerKey("top1"), mapper.writeValueAsString(ScoreRank.topRankUser("top1", n1, scoreRank.getScore() + 850)));
+				jedis.set(playerKey("top2"), mapper.writeValueAsString(ScoreRank.topRankUser("top2", n2, scoreRank.getScore() + 600)));
+				jedis.set(playerKey("top3"), mapper.writeValueAsString(ScoreRank.topRankUser("top3", n3, scoreRank.getScore() + 150)));
+				
+				jedis.set(newTop3Key(),true + "");
+			}
 			jedis.set(playerKey(openid), json);
 		} catch(Exception e) {
 			logger.error(e.getMessage());
@@ -371,7 +384,7 @@ public class GameServiceImpl implements GameService {
 	private PrizeType lotty(String openid) {
 		Jedis jedis = null;
 		try {
-			jedis = redisManager.getRedisInstance();;
+			jedis = redisManager.getRedisInstance();
 			int r = new Random().nextInt(100);
 			if (r >= 99) {// 1等奖 1%
 				String countKey = dailyPrizeCountKey(PrizeType.LEVEL_1);
@@ -406,7 +419,7 @@ public class GameServiceImpl implements GameService {
 				jedis.sadd(fansPrizeRecordKey(openid), PrizeType.LEVEL_2.toString());// 记录用户中奖
 				jedis.set(countKey, count + 1 + "");
 				return PrizeType.LEVEL_2;
-			} else if (r == 96 || r == 95 || r == 94) {// 3等奖 3%
+			} else if (r < 97 && r >= 91) {// 3等奖 6%
 				String countKey = dailyPrizeCountKey(PrizeType.LEVEL_3);
 				String countStr = jedis.get(countKey);
 				int count = 0;
@@ -563,5 +576,11 @@ public class GameServiceImpl implements GameService {
 		SimpleDateFormat f = new SimpleDateFormat("yyyy-MM-dd");
 		String date = f.format(new Date());
 		return "daily_player_count:" + date + ":";
+	}
+	
+	private String newTop3Key() {
+		SimpleDateFormat f = new SimpleDateFormat("yyyy-MM-dd");
+		String date = f.format(new Date());
+		return "daily_rank_update:" + date + ":";
 	}
 }

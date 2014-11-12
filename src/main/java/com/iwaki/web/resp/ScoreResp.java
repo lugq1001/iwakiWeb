@@ -2,6 +2,7 @@ package com.iwaki.web.resp;
 
 import java.util.ArrayList;
 
+import com.iwaki.web.model.Award;
 import com.iwaki.web.model.ScoreRank;
 
 public class ScoreResp extends Resp {
@@ -11,6 +12,12 @@ public class ScoreResp extends Resp {
 	private boolean atl = false;
 	
 	private ArrayList<ScoreRank> ranks;
+	
+	private Award award;
+	
+	private boolean awardResult;
+	
+	private String awardDesc;
 
 	public long getMyRank() {
 		return myRank;
@@ -34,6 +41,30 @@ public class ScoreResp extends Resp {
 
 	public void setAtl(boolean atl) {
 		this.atl = atl;
+	}
+
+	public Award getAward() {
+		return award;
+	}
+
+	public void setAward(Award award) {
+		this.award = award;
+	}
+
+	public boolean isAwardResult() {
+		return awardResult;
+	}
+
+	public void setAwardResult(boolean awardResult) {
+		this.awardResult = awardResult;
+	}
+
+	public String getAwardDesc() {
+		return awardDesc;
+	}
+
+	public void setAwardDesc(String awardDesc) {
+		this.awardDesc = awardDesc;
 	}
 
 	

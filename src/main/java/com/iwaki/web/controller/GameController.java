@@ -85,7 +85,9 @@ public class GameController {
 		if (score == null ) {
 			score = 0L;
 		}
+		boolean guest = false;
 		if (openid == null || openid.length() == 0) {
+			guest = true;
 			String ip = request.getRemoteAddr();
 			openid = ip;
 			//UUID uuid= UUID.randomUUID();
@@ -106,6 +108,22 @@ public class GameController {
 		scoreResp.setRanks(gameService.topRanks());
 		boolean hasAcceptArticle = gameService.hasAcceptArticle(openid);
 		scoreResp.setAtl(hasAcceptArticle);
+		
+		Award a = null;		
+		try {
+			if (guest) {
+				a = gameService.getGuestAward(request.getRemoteAddr());
+				scoreResp.setAward(a);
+				scoreResp.setAwardResult(true);
+				scoreResp.setAwardDesc("");
+			}
+		} catch (Exception e) {
+			scoreResp.setAwardResult(false);
+			scoreResp.setAwardDesc(e.getMessage());
+			logger.error(e.getMessage());
+			e.printStackTrace();
+		}
+		
 		return scoreResp;
 	}
 	
