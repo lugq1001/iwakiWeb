@@ -459,7 +459,7 @@ public class GameServiceImpl implements GameService {
 				jedis.sadd(fansPrizeRecordKey(ip), PrizeType.LEVEL_3.toString());// 记录用户中奖
 				jedis.set(countKey, count + 1 + "");
 				return PrizeType.LEVEL_3;
-			} else if (r < 200) {// 5等奖 1.5%
+			} else if (r == 198 || r == 197 || r == 196) {// 5等奖 1.5%
 				return PrizeType.LEVEL_5;
 			} 
 			
